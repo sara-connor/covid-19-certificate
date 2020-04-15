@@ -2,97 +2,140 @@ const { PDFDocument, StandardFonts } = PDFLib
 
 const $ = (...args) => document.querySelector(...args)
 const $$ = (...args) => document.querySelectorAll(...args)
-const signaturePad = new SignaturePad($('#field-signature'), { minWidth: 1, maxWidth: 3 })
+const $$$ = (...args) => [...document.querySelectorAll(...args)]
 
-function hasProfile() {
-  return localStorage.getItem('name') !== null
-}
-
-function saveProfile() {
-  for (field of $$('#form-profile input:not([disabled]):not([type=checkbox])')) {
-    localStorage.setItem(field.id.substring('field-'.length), field.value)
+const generateQR = async text => {
+  try {
+    var opts = {
+      errorCorrectionLevel: 'M',
+      type: 'image/png',
+      quality: 0.92,
+      margin: 1,
+    }
+    return await QRCode.toDataURL(text, opts)
+  } catch (err) {
+    console.error(err)
   }
-
-  localStorage.setItem('signature', signaturePad.toDataURL())
 }
 
 function getProfile() {
-  const fields = {}
-  for (let i = 0; i < localStorage.length; i++){
-    const name = localStorage.key(i)
-    fields[name] = localStorage.getItem(name)
-  }
-  return fields
+	const obj = {};
+	for (field of $$('#form-profile input:not([disabled]):not([type=checkbox])')) {
+		obj[field.id.substring('field-'.length)] = field.value;
+	}
+	return obj;
 }
 
-async function generatePdf(profile, reason) {
-  const url = 'certificate.pdf?v=bfc885e5326a9e0d3184aed9d183bca20a9cd76f'
+function getReasons() {
+	return $$$('input[name="field-reason"]:checked').map(x => x.value).join('-');
+}
+
+function hasHash() {
+	
+	return window.location.hash.length > 0;
+}
+
+
+
+function myFormat(refDate) {
+  const creationDate = refDate.toLocaleDateString('fr-FR')
+  const creationHour = refDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }).replace(':', 'h')
+  return { "creationDate": creationDate, "creationHour": creationHour };
+}
+
+async function generatePdf(profile, reasons, refDate) {
+  const url = 'certificate.pdf'
   const existingPdfBytes = await fetch(url).then(res => res.arrayBuffer())
 
+  const { creationDate, creationHour } = myFormat(refDate);
+
+  const { lastname, firstname, birthday, lieunaissance, address, zipcode, town } = profile
+
+
+  const data = [
+    `Cree le: ${creationDate} a ${creationHour}`,
+    `Nom: ${lastname}`,
+    `Prenom: ${firstname}`,
+    `Naissance: ${birthday} a ${lieunaissance}`,
+    `Adresse: ${address} ${zipcode} ${town}`,
+    `Sortie: ${creationDate} a ${creationHour}`,
+    `Motifs: ${reasons}`,
+  ].join('; ')
+
+
   const pdfDoc = await PDFDocument.load(existingPdfBytes)
-  const page = pdfDoc.getPages()[0]
+  const page1 = pdfDoc.getPages()[0]
 
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
   const drawText = (text, x, y, size = 11) => {
-    page.drawText(text, {x, y, size, font})
+    page1.drawText(text, {x, y, size, font})
   }
 
-  drawText(profile.name, 125, 685)
-  drawText(profile.birthday, 125, 661)
-  drawText(profile.birthplace || '', 95, 637)
-  drawText(`${profile.address} ${profile.zipcode} ${profile.town}`, 140, 613)
+  drawText(`${firstname} ${lastname}`, 125, 685)
+  drawText(birthday, 125, 661)
+  drawText(lieunaissance, 95, 637)
+  drawText(`${address} ${zipcode} ${town}`, 140, 613)
 
-  switch (reason) {
-    case 'work':
+  if (reasons.includes('travail')) {
       drawText('x', 76.5, 526, 20)
-      break
-    case 'groceries':
+  }
+  if (reasons.includes('courses')) {
       drawText('x', 76.5, 476.5, 20)
-      break
-    case 'health':
+  }
+  if (reasons.includes('sante')) {
       drawText('x', 76.5, 436, 20)
-      break
-    case 'family':
+  }
+  if (reasons.includes('famille')) {
       drawText('x', 76.5, 399.5, 20)
-      break
-    case 'sport':
+  }
+  if (reasons.includes('sport')) {
       drawText('x', 76.5, 344, 20)
-      break
-    case 'notification':
+  }
+  if (reasons.includes('judiciaire')) {
       drawText('x', 76.5, 297, 20)
-      break
-    case 'mission':
+  }
+  if (reasons.includes('missions')) {
       drawText('x', 76.5, 261, 20)
-      break
+  }
+  
+
+  drawText(town, 110, 225)
+
+
+  if (reasons.length > 0) {
+    // Date sortie
+    drawText(creationDate, 92, 201);
+    drawText(String(refDate.getHours()).padStart(2, '0'), 200, 201);
+    drawText(String(refDate.getMinutes()).padStart(2, '0'), 220, 201);
   }
 
-  drawText(profile['done-at'] || profile.town, 110, 225)
 
-  if (reason !== '') {
-    const date = [
-      String((new Date).getDate()).padStart(2, '0'),
-      String((new Date).getMonth() + 1).padStart(2, '0'),
-      String((new Date).getFullYear()),
-    ].join('/')
+  // Date création
+  drawText('Date de création:', 464, 150, 7)
+  drawText(`${creationDate} à ${creationHour}`, 455, 144, 7)
 
-    drawText(date, 105, 201)
-    drawText(String((new Date).getHours()).padStart(2, '0'), 195, 201)
 
-    // Round the minutes to the lower X0 or X5 value, so it feels more human.
-    const minutes = Math.floor((new Date).getMinutes() / 5) * 5;
-    drawText(String(minutes).padStart(2, '0'), 225, 201)
-  }
+  const generatedQR = await generateQR(data)
 
-  const signatureArrayBuffer = await fetch(profile.signature).then(res => res.arrayBuffer())
-  const signatureImage = await pdfDoc.embedPng(signatureArrayBuffer)
-  const signatureDimensions = signatureImage.scale(1 / (signatureImage.width / 80))
+  const qrImage = await pdfDoc.embedPng(generatedQR)
 
-  page.drawImage(signatureImage, {
-    x: page.getWidth() - signatureDimensions.width - 380,
-    y: 130,
-    width: signatureDimensions.width,
-    height: signatureDimensions.height,
+  page1.drawImage(qrImage, {
+    x: page1.getWidth() - 170,
+    y: 155,
+    width: 100,
+    height: 100,
   })
+
+  pdfDoc.addPage()
+  const page2 = pdfDoc.getPages()[1]
+  page2.drawImage(qrImage, {
+    x: 50,
+    y: page2.getHeight() - 350,
+    width: 300,
+    height: 300,
+  })
+
+
 
   const pdfBytes = await pdfDoc.save()
   return new Blob([pdfBytes], {type: 'application/pdf'})
@@ -106,21 +149,6 @@ function downloadBlob(blob, fileName) {
   link.click()
 }
 
-function getAndSaveReason() {
-  const {value} = $('input[name="field-reason"]:checked')
-  localStorage.setItem('last-reason', value)
-  return value
-}
-
-function restoreReason() {
-  const value = localStorage.getItem('last-reason')
-  if (value === null) {
-    return
-  }
-
-  $(`#radio-${value}`).checked = true
-}
-
 // see: https://stackoverflow.com/a/32348687/1513045
 function isFacebookBrowser() {
   const ua = navigator.userAgent || navigator.vendor || window.opera
@@ -128,74 +156,115 @@ function isFacebookBrowser() {
 }
 
 function applyDoneAt() {
-  const { checked } = $('#check-same-town')
-  $('#group-done-at').style.display = checked ? 'none' : 'block';
-  $('#field-done-at').disabled = checked;
 }
 
 if (isFacebookBrowser()) {
   $('#alert-facebook').style.display = 'block';
 }
 
-$('#alert-official .close').addEventListener('click', ({ target }) => {
-  target.offsetParent.style.display = 'none'
-  localStorage.setItem('dismiss-official-alert', true)
-})
 
-if (localStorage.getItem('dismiss-official-alert')) {
-  $('#alert-official').style.display = 'none'
-}
-
-if (hasProfile()) {
-  $('#form-generate').style.display = 'block'
+if (hasHash()) {
+  $('#generate-pdf').style.display = 'block'
 } else {
   $('#form-profile').style.display = 'block'
 }
 
+
+
+function restoreFromHash(value) {
+	try {
+		var obj = JSON.parse(atob(value.substr(1)));
+		const reasons = obj.reasons;
+		delete obj.reasons;
+		return { 'profile': obj, 'reasons': reasons };
+	}
+	catch (e) {
+		return {};
+	}
+}
+
+function toHash(profile, reasons) {
+	const formated = Object.assign({}, profile);
+	formated['reasons'] = reasons;
+	return '#' + btoa(JSON.stringify(formated));
+}
+
+async function downloadPDF(profile, reasons, shift) { 
+  var refDate = new Date();
+  refDate.setMinutes( refDate.getMinutes() - shift );  
+  
+  const { creationDate, creationHour } = myFormat(refDate);
+  const pdfBlob = await generatePdf(profile, reasons, refDate);
+  downloadBlob(pdfBlob, `attestation-${creationDate}_${creationHour}.pdf`);
+}
+
 $('#form-profile').addEventListener('submit', event => {
   event.preventDefault()
-  saveProfile()
-  location.reload()
-})
+  
+  window.location.href = window.location.href + toHash( getProfile(), getReasons() );
+  
+  window.location.reload();
 
-$('#date-selector').addEventListener('change', ({ target }) => {
-  $('#field-birthday').value = target.value.split('-').reverse().join('/')
-})
+});
 
-$('#check-same-town').addEventListener('change', applyDoneAt)
-applyDoneAt()
 
-const formWidth = $('#form-profile').offsetWidth
-$('#field-signature').width = formWidth
-$('#field-signature').height = formWidth / 1.5
 
-$('#reset-signature').addEventListener('click', () => signaturePad.clear())
-
-$('#form-generate').addEventListener('submit', async event => {
+$('#form-pdf-0').addEventListener('submit', event => {
   event.preventDefault()
+  const data = restoreFromHash(window.location.hash);
+  
+  downloadPDF(data.profile, data.reasons, 0);
+  
+});
 
-  const button = event.target.querySelector('button[type=submit]')
-  button.disabled = true
 
-  const reason = getAndSaveReason()
-  const profile = getProfile()
+$('#form-pdf-15').addEventListener('submit', event => {
+  event.preventDefault()
+  const data = restoreFromHash(window.location.hash);
+  
+  downloadPDF(data.profile, data.reasons, 15);
+  
+});
 
-  if (profile.birthplace === undefined) {
-    const birthplace = prompt([
-      `La nouvelle attestation, en date du 25 mars, exige maintenant le lieu de naissance et votre profil ne contient`,
-      `actuellement pas cette information, merci de compléter :`,
-    ].join(' '))
+$('#form-pdf-30').addEventListener('submit', event => {
+  event.preventDefault()
+  const data = restoreFromHash(window.location.hash);
+  
+  downloadPDF(data.profile, data.reasons, 30);
+  
+});
 
-    if (birthplace) {
-      profile.birthplace = birthplace
-      localStorage.setItem('birthplace', birthplace)
-    }
+
+
+function addSlash () {
+  $('#field-birthday').value = $('#field-birthday').value.replace(/^(\d{2})$/g, '$1/')
+  $('#field-birthday').value = $('#field-birthday').value.replace(/^(\d{2})\/(\d{2})$/g, '$1/$2/')
+  $('#field-birthday').value = $('#field-birthday').value.replace(/\/\//g, '/')
+}
+
+$('#field-birthday').onkeyup = function () {
+  const key = event.keyCode || event.charCode
+  if (key === 8 || key === 46) {
+    return false
+  } else {
+    addSlash()
+    return false
   }
+}
 
-  const pdfBlob = await generatePdf(profile, reason)
-  button.disabled = false
 
-  downloadBlob(pdfBlob, 'attestation.pdf')
+
+$$('input').forEach(input => {
+  const exempleElt = input.parentNode.parentNode.querySelector('.exemple')
+  if (input.placeholder && exempleElt) {
+    input.addEventListener('input', (event) => {
+      if (input.value) {
+        exempleElt.innerHTML = 'ex.&nbsp;: ' + input.placeholder
+      } else {
+        exempleElt.innerHTML = ''
+      }
+    })
+  }
 })
 
-restoreReason()
+
