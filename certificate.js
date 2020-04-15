@@ -155,9 +155,6 @@ function isFacebookBrowser() {
   return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1)
 }
 
-function applyDoneAt() {
-}
-
 if (isFacebookBrowser()) {
   $('#alert-facebook').style.display = 'block';
 }
