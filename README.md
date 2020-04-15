@@ -1,7 +1,7 @@
-This project was created thanks to open source projects:
+Ce projet a été créé grace aux projets open source suivants:
 
 - [PDF-LIB](https://pdf-lib.js.org/)
-- [QRCODE] (https://github.com/soldair/node-qrcode)
+- [QRCODE](https://github.com/soldair/node-qrcode)
 - [Bootstrap](https://getbootstrap.com/)
 - [Font Awesome](https://fontawesome.com/license)
 - [Twemoji](https://twemoji.twitter.com/)
