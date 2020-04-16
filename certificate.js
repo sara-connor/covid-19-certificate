@@ -37,8 +37,6 @@ function hasHash() {
   return window.location.hash.length > 0;
 }
 
-
-
 function myFormat(refDate) {
   const creationDate = refDate.toLocaleDateString('fr-FR')
   const creationHour = refDate.toLocaleTimeString('fr-FR', {
@@ -70,7 +68,6 @@ async function generatePdf(profile, reasons, refDate) {
     town
   } = profile
 
-
   const data = [
     `Cree le: ${creationDate} a ${creationHour}`,
     `Nom: ${lastname}`,
@@ -80,7 +77,6 @@ async function generatePdf(profile, reasons, refDate) {
     `Sortie: ${creationDate} a ${creationHour}`,
     `Motifs: ${reasons}`,
   ].join('; ')
-
 
   const pdfDoc = await PDFDocument.load(existingPdfBytes)
   const page1 = pdfDoc.getPages()[0]
@@ -122,9 +118,7 @@ async function generatePdf(profile, reasons, refDate) {
     drawText('x', 76.5, 261, 20)
   }
 
-
   drawText(town, 110, 225)
-
 
   if (reasons.length > 0) {
     // Date sortie
@@ -133,11 +127,9 @@ async function generatePdf(profile, reasons, refDate) {
     drawText(String(refDate.getMinutes()).padStart(2, '0'), 220, 201);
   }
 
-
   // Date création
   drawText('Date de création:', 464, 150, 7)
   drawText(`${creationDate} à ${creationHour}`, 455, 144, 7)
-
 
   const generatedQR = await generateQR(data)
 
@@ -158,8 +150,6 @@ async function generatePdf(profile, reasons, refDate) {
     width: 300,
     height: 300,
   })
-
-
 
   const pdfBytes = await pdfDoc.save()
   return new Blob([pdfBytes], {
@@ -185,14 +175,11 @@ if (isFacebookBrowser()) {
   $('#alert-facebook').style.display = 'block';
 }
 
-
 if (hasHash()) {
   $('#generate-pdf').style.display = 'block'
 } else {
   $('#form-profile').style.display = 'block'
 }
-
-
 
 function restoreFromHash(value) {
   try {
@@ -235,8 +222,6 @@ $('#form-profile').addEventListener('submit', event => {
 
 });
 
-
-
 $('#form-pdf-0').addEventListener('submit', event => {
   event.preventDefault()
   const data = restoreFromHash(window.location.hash);
@@ -244,7 +229,6 @@ $('#form-pdf-0').addEventListener('submit', event => {
   downloadPDF(data.profile, data.reasons, 0);
 
 });
-
 
 $('#form-pdf-15').addEventListener('submit', event => {
   event.preventDefault()
@@ -262,8 +246,6 @@ $('#form-pdf-30').addEventListener('submit', event => {
 
 });
 
-
-
 function addSlash() {
   $('#field-birthday').value = $('#field-birthday').value.replace(/^(\d{2})$/g, '$1/')
   $('#field-birthday').value = $('#field-birthday').value.replace(/^(\d{2})\/(\d{2})$/g, '$1/$2/')
@@ -280,8 +262,6 @@ $('#field-birthday').onkeyup = function() {
   }
 }
 
-
-
 $$('input').forEach(input => {
   const exempleElt = input.parentNode.parentNode.querySelector('.exemple')
   if (input.placeholder && exempleElt) {
@@ -293,4 +273,5 @@ $$('input').forEach(input => {
       }
     })
   }
+})
 })
