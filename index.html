@@ -7,7 +7,6 @@
     <meta name="msapplication-TileColor" content="#603cba">
     <meta name="msapplication-config" content="./favicons/browserconfig.xml">
     <meta name="theme-color" content="#ffffff">
-
     <link rel="apple-touch-icon" sizes="180x180" href="./favicons/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="./favicons/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="./favicons/favicon-16x16.png">
@@ -21,7 +20,6 @@
         body {
             padding: 20px;
         }
-
         h4,
         form,
         footer,
@@ -29,64 +27,51 @@
             margin: 30px auto;
             max-width: 400px;
         }
-
         footer {
             margin-top: 40px;
         }
-
         canvas {
             border: 1px solid #ced4da;
             border-radius: .25rem;
         }
-
         .exemple {
             margin-top: 0.2em;
             font-style: italic;
             color: #999999;
             height: 1em;
         }
-
         input:invalid+span:after {
             content: '✖';
             padding-left: 0.3em;
         }
-
         input:valid+span:after {
             content: '✓';
             padding-left: 0.3em;
         }
-
-
         #form-profile .form-check {
             margin-bottom: 1rem;
         }
-
         #form-profile .form-check-label {
             font-size: 80%;
             font-weight: 400;
             transform: translateY(-2px);
         }
-
         #form-generate .form-check {
             margin: 10px;
         }
-
         #alert-facebook {
             position: fixed;
             top: 10px;
             left: 10px;
             right: 10px;
         }
-
         #alert-official {
             margin: 1rem auto 0;
         }
-
         #date-selector-group {
             position: relative;
             overflow: hidden;
         }
-
         #date-selector {
             position: absolute;
             top: 0;
@@ -98,36 +83,29 @@
             z-index: 1;
             cursor: pointer;
         }
-
         svg {
             height: 1em;
         }
-
         .close {
             margin: 0 0 15px 15px;
         }
-
         .btn-loader:not([disabled]) svg {
             display: none;
         }
-
         .btn-loader[disabled] {
             position: relative;
             padding-right: 2.5rem;
         }
-
         .btn-loader[disabled] svg {
             position: absolute;
             top: 50%;
             right: .75rem;
             animation: svg-button-spin 1000ms infinite ease;
         }
-
         @keyframes svg-button-spin {
             from {
                 transform: translateY(-50%) rotate(0deg);
             }
-
             to {
                 transform: translateY(-50%) rotate(360deg);
             }
@@ -137,11 +115,8 @@
 
 <body>
     <h4>COVID-19 – Générateur d'attestation de déplacement</h4>
-
     <form id="form-profile" style="display: none">
-
         <h5>Remplissez votre profil</h5>
-
         <div class="form-group">
             <label for="field-firstname" id="field-firstname-label">Prénom</label>
             <div class="input-group  align-items-center">
@@ -150,7 +125,6 @@
             </div>
             <p class="exemple"></p>
         </div>
-
         <div class="form-group">
             <label for="field-lastname" id="field-lastname-label">Nom</label>
             <div class="input-group  align-items-center">
@@ -159,7 +133,6 @@
             </div>
             <p class="exemple"></p>
         </div>
-
         <div class="form-group">
             <label for="field-birthday" id="field-birthday-label">Date de naissance (au format jj/mm/aaaa)</label>
             <div class="input-group  align-items-center">
@@ -168,7 +141,6 @@
             </div>
             <p class="exemple"></p>
         </div>
-
         <div class="form-group">
             <label for="field-lieunaissance" id="field-lieunaissance-label">Lieu de naissance</label>
             <div class="input-group  align-items-center">
@@ -186,7 +158,6 @@
             </div>
             <p class="exemple"></p>
         </div>
-
         <div class="form-group">
             <label for="field-town" id="field-town-label">Ville</label>
             <div class="input-group  align-items-center">
@@ -195,7 +166,6 @@
             </div>
             <p class="exemple"></p>
         </div>
-
         <div class="form-group">
             <label for="field-zipcode" id="field-zipcode-label">Code Postal</label>
             <div class="input-group  align-items-center">
@@ -204,30 +174,24 @@
             </div>
             <p class="exemple"></p>
         </div>
-
-
         <fieldset>
             <legend class="title-3">Choisissez le ou les motif(s) de sortie</legend>
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="field-reason" id="checkbox-travail" value="travail">
                 <label class="form-check-label" for="checkbox-travail">Déplacements entre le domicile et le lieu d’exercice de l’activité professionnelle, lorsqu'ils sont indispensables à l'exercice d’activités ne pouvant être organisées sous forme de télétravail ou déplacements professionnels ne pouvant être différés.</label>
             </div>
-
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="field-reason" id="checkbox-courses" value="courses">
                 <label class="form-check-label" for="checkbox-courses">Déplacements pour effectuer des achats de fournitures nécessaires à l’activité professionnelle et des achats de première nécessité dans des établissements dont les activités demeurent autorisées (<a href="https://www.service-public.fr/particuliers/actualites/A13921" class="stores-link" title="Liste des commerces et établissements qui restent ouverts - nouvelle page" target="_blank">liste des commerces et établissements qui restent ouverts</a>).</label>
             </div>
-
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="field-reason" id="checkbox-sante" value="sante">
                 <label class="form-check-label" for="checkbox-sante">Consultations et soins ne pouvant être assurés à distance et ne pouvant être différés ; consultations et soins des patients atteints d'une affection de longue durée.</label>
             </div>
-
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="field-reason" id="checkbox-famille" value="famille">
                 <label class="form-check-label" for="checkbox-famille">Déplacements pour motif familial impérieux, pour l’assistance aux personnes vulnérables ou la garde d’enfants.</label>
             </div>
-
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="field-reason" id="checkbox-sport" value="sport">
                 <label class="form-check-label" for="checkbox-sport">Déplacements brefs, dans la limite d'une heure quotidienne et dans un rayon maximal d'un kilomètre autour du domicile, liés soit à l'activité physique individuelle des personnes, à l'exclusion de toute pratique sportive collective et de toute proximité avec d'autres personnes, soit à la promenade avec les seules personnes regroupées dans un même domicile, soit aux besoins des animaux de compagnie.</label>
@@ -241,35 +205,25 @@
                 <label class="form-check-label" for="checkbox-missions">Participation à des missions d’intérêt général sur demande de l’autorité administrative.</label>
             </div>
         </fieldset>
-
         <button type="submit" class="btn btn-primary">Générer lien</button>
     </form>
-
     <div id="generate-pdf" style="display: none">
-
         <form id="form-pdf-0">
             <button type="submit" class="btn btn-primary">Générer PDF</button>
         </form>
-
         <form id="form-pdf-15">
             <button type="submit" class="btn btn-primary">Générer PDF - 15</button>
         </form>
-
         <form id="form-pdf-30">
             <button type="submit" class="btn btn-primary">Générer PDF - 30</button>
-
         </form>
-
     </div>
-
     <div class="alert alert-danger" role="alert" style="display: none" id="alert-facebook">
         ATTENTION !! Vous utilisez actuellement le navigateur Facebook, ce générateur ne fonctionne pas correctement au
         sein de ce navigateur ! Merci d'ouvrir Chrome sur Android ou bien Safari sur iOS.
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.4.1/dist/pdf-lib.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
     <script src="certificate.js"></script>
 </body>
-
 </html>
