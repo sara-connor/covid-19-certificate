@@ -1,4 +1,7 @@
-const { PDFDocument, StandardFonts } = PDFLib
+const {
+  PDFDocument,
+  StandardFonts
+} = PDFLib
 
 const $ = (...args) => document.querySelector(...args)
 const $$ = (...args) => document.querySelectorAll(...args)
@@ -19,37 +22,53 @@ const generateQR = async text => {
 }
 
 function getProfile() {
-	const obj = {};
-	for (field of $$('#form-profile input:not([disabled]):not([type=checkbox])')) {
-		obj[field.id.substring('field-'.length)] = field.value;
-	}
-	return obj;
+  const obj = {};
+  for (field of $$('#form-profile input:not([disabled]):not([type=checkbox])')) {
+    obj[field.id.substring('field-'.length)] = field.value;
+  }
+  return obj;
 }
 
 function getReasons() {
-	return $$$('input[name="field-reason"]:checked').map(x => x.value).join('-');
+  return $$$('input[name="field-reason"]:checked').map(x => x.value).join('-');
 }
 
 function hasHash() {
-	
-	return window.location.hash.length > 0;
+  return window.location.hash.length > 0;
 }
 
 
 
 function myFormat(refDate) {
   const creationDate = refDate.toLocaleDateString('fr-FR')
-  const creationHour = refDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }).replace(':', 'h')
-  return { "creationDate": creationDate, "creationHour": creationHour };
+  const creationHour = refDate.toLocaleTimeString('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit'
+  }).replace(':', 'h')
+  return {
+    "creationDate": creationDate,
+    "creationHour": creationHour
+  };
 }
 
 async function generatePdf(profile, reasons, refDate) {
   const url = 'certificate.pdf'
   const existingPdfBytes = await fetch(url).then(res => res.arrayBuffer())
 
-  const { creationDate, creationHour } = myFormat(refDate);
+  const {
+    creationDate,
+    creationHour
+  } = myFormat(refDate);
 
-  const { lastname, firstname, birthday, lieunaissance, address, zipcode, town } = profile
+  const {
+    lastname,
+    firstname,
+    birthday,
+    lieunaissance,
+    address,
+    zipcode,
+    town
+  } = profile
 
 
   const data = [
@@ -68,7 +87,12 @@ async function generatePdf(profile, reasons, refDate) {
 
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
   const drawText = (text, x, y, size = 11) => {
-    page1.drawText(text, {x, y, size, font})
+    page1.drawText(text, {
+      x,
+      y,
+      size,
+      font
+    })
   }
 
   drawText(`${firstname} ${lastname}`, 125, 685)
@@ -77,27 +101,27 @@ async function generatePdf(profile, reasons, refDate) {
   drawText(`${address} ${zipcode} ${town}`, 140, 613)
 
   if (reasons.includes('travail')) {
-      drawText('x', 76.5, 526, 20)
+    drawText('x', 76.5, 526, 20)
   }
   if (reasons.includes('courses')) {
-      drawText('x', 76.5, 476.5, 20)
+    drawText('x', 76.5, 476.5, 20)
   }
   if (reasons.includes('sante')) {
-      drawText('x', 76.5, 436, 20)
+    drawText('x', 76.5, 436, 20)
   }
   if (reasons.includes('famille')) {
-      drawText('x', 76.5, 399.5, 20)
+    drawText('x', 76.5, 399.5, 20)
   }
   if (reasons.includes('sport')) {
-      drawText('x', 76.5, 344, 20)
+    drawText('x', 76.5, 344, 20)
   }
   if (reasons.includes('judiciaire')) {
-      drawText('x', 76.5, 297, 20)
+    drawText('x', 76.5, 297, 20)
   }
   if (reasons.includes('missions')) {
-      drawText('x', 76.5, 261, 20)
+    drawText('x', 76.5, 261, 20)
   }
-  
+
 
   drawText(town, 110, 225)
 
@@ -138,7 +162,9 @@ async function generatePdf(profile, reasons, refDate) {
 
 
   const pdfBytes = await pdfDoc.save()
-  return new Blob([pdfBytes], {type: 'application/pdf'})
+  return new Blob([pdfBytes], {
+    type: 'application/pdf'
+  })
 }
 
 function downloadBlob(blob, fileName) {
@@ -169,37 +195,42 @@ if (hasHash()) {
 
 
 function restoreFromHash(value) {
-	try {
-		var obj = JSON.parse(atob(value.substr(1)));
-		const reasons = obj.reasons;
-		delete obj.reasons;
-		return { 'profile': obj, 'reasons': reasons };
-	}
-	catch (e) {
-		return {};
-	}
+  try {
+    var obj = JSON.parse(atob(value.substr(1)));
+    const reasons = obj.reasons;
+    delete obj.reasons;
+    return {
+      'profile': obj,
+      'reasons': reasons
+    };
+  } catch (e) {
+    return {};
+  }
 }
 
 function toHash(profile, reasons) {
-	const formated = Object.assign({}, profile);
-	formated['reasons'] = reasons;
-	return '#' + btoa(JSON.stringify(formated));
+  const formated = Object.assign({}, profile);
+  formated['reasons'] = reasons;
+  return '#' + btoa(JSON.stringify(formated));
 }
 
-async function downloadPDF(profile, reasons, shift) { 
+async function downloadPDF(profile, reasons, shift) {
   var refDate = new Date();
-  refDate.setMinutes( refDate.getMinutes() - shift );  
-  
-  const { creationDate, creationHour } = myFormat(refDate);
+  refDate.setMinutes(refDate.getMinutes() - shift);
+
+  const {
+    creationDate,
+    creationHour
+  } = myFormat(refDate);
   const pdfBlob = await generatePdf(profile, reasons, refDate);
   downloadBlob(pdfBlob, `attestation-${creationDate}_${creationHour}.pdf`);
 }
 
 $('#form-profile').addEventListener('submit', event => {
   event.preventDefault()
-  
-  window.location.href = window.location.href + toHash( getProfile(), getReasons() );
-  
+
+  window.location.href = window.location.href + toHash(getProfile(), getReasons());
+
   window.location.reload();
 
 });
@@ -209,37 +240,37 @@ $('#form-profile').addEventListener('submit', event => {
 $('#form-pdf-0').addEventListener('submit', event => {
   event.preventDefault()
   const data = restoreFromHash(window.location.hash);
-  
+
   downloadPDF(data.profile, data.reasons, 0);
-  
+
 });
 
 
 $('#form-pdf-15').addEventListener('submit', event => {
   event.preventDefault()
   const data = restoreFromHash(window.location.hash);
-  
+
   downloadPDF(data.profile, data.reasons, 15);
-  
+
 });
 
 $('#form-pdf-30').addEventListener('submit', event => {
   event.preventDefault()
   const data = restoreFromHash(window.location.hash);
-  
+
   downloadPDF(data.profile, data.reasons, 30);
-  
+
 });
 
 
 
-function addSlash () {
+function addSlash() {
   $('#field-birthday').value = $('#field-birthday').value.replace(/^(\d{2})$/g, '$1/')
   $('#field-birthday').value = $('#field-birthday').value.replace(/^(\d{2})\/(\d{2})$/g, '$1/$2/')
   $('#field-birthday').value = $('#field-birthday').value.replace(/\/\//g, '/')
 }
 
-$('#field-birthday').onkeyup = function () {
+$('#field-birthday').onkeyup = function() {
   const key = event.keyCode || event.charCode
   if (key === 8 || key === 46) {
     return false
@@ -263,5 +294,3 @@ $$('input').forEach(input => {
     })
   }
 })
-
-
